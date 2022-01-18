@@ -37,8 +37,7 @@ class CMakeBuildExt(build_ext):
             )
             if not os.path.exists(cmake_python_library):
                 cmake_python_library = "{}/libs/python{}.lib".format(
-                    sys.base_prefix,
-                    distutils.sysconfig.get_config_var("VERSION"),
+                    sys.base_prefix, distutils.sysconfig.get_config_var("VERSION"),
                 )
         else:
             cmake_python_library = "{}/{}".format(
@@ -47,69 +46,58 @@ class CMakeBuildExt(build_ext):
             )
         cmake_python_include_dir = distutils.sysconfig.get_python_inc()
 
-        install_dir = os.path.abspath(
-            os.path.dirname(self.get_ext_fullpath("dummy"))
-        )
+        install_dir = os.path.abspath(os.path.dirname(self.get_ext_fullpath("dummy")))
         os.makedirs(install_dir, exist_ok=True)
         cmake_args = [
             "-DCMAKE_INSTALL_PREFIX={}".format(install_dir),
             "-DPython_EXECUTABLE={}".format(sys.executable),
             "-DPython_LIBRARIES={}".format(cmake_python_library),
             "-DPython_INCLUDE_DIRS={}".format(cmake_python_include_dir),
-            "-DCMAKE_BUILD_TYPE={}".format(
-                "Debug" if self.debug else "Release"
-            ),
+            "-DCMAKE_BUILD_TYPE={}".format("Debug" if self.debug else "Release"),
             "-DCMAKE_PREFIX_PATH={}".format(pybind11.get_cmake_dir()),
         ]
-        if os.environ.get("KEPLER_JAX_CUDA", "no").lower() == "yes":
-            cmake_args.append("-DKEPLER_JAX_CUDA=yes")
+        if os.environ.get("EHRLICH_ABERTH_JAX_CUDA", "no").lower() == "yes":
+            cmake_args.append("-DEHRLICH_ABERTH_JAX_CUDA=yes")
 
         os.makedirs(self.build_temp, exist_ok=True)
-        subprocess.check_call(
-            ["cmake", HERE] + cmake_args, cwd=self.build_temp
-        )
+        subprocess.check_call(["cmake", HERE] + cmake_args, cwd=self.build_temp)
 
         # Build all the extensions
         super().build_extensions()
 
         # Finally run install
         subprocess.check_call(
-            ["cmake", "--build", ".", "--target", "install"],
-            cwd=self.build_temp,
+            ["cmake", "--build", ".", "--target", "install"], cwd=self.build_temp,
         )
 
     def build_extension(self, ext):
         target_name = ext.name.split(".")[-1]
         subprocess.check_call(
-            ["cmake", "--build", ".", "--target", target_name],
-            cwd=self.build_temp,
+            ["cmake", "--build", ".", "--target", target_name], cwd=self.build_temp,
         )
 
 
 extensions = [
-    Extension(
-        "kepler_jax.cpu_ops",
-        ["src/kepler_jax/src/cpu_ops.cc"],
-    ),
+    Extension("ehrlich_aberth_jax.cpu_ops", ["src/ehrlich_aberth_jax/src/cpu_ops.cc"],),
 ]
 
-if os.environ.get("KEPLER_JAX_CUDA", "no").lower() == "yes":
+if os.environ.get("EHRLICH_ABERTH_JAX_CUDA", "no").lower() == "yes":
     extensions.append(
         Extension(
-            "kepler_jax.gpu_ops",
+            "ehrlich_aberth_jax.gpu_ops",
             [
-                "src/kepler_jax/src/gpu_ops.cc",
-                "src/kepler_jax/src/cuda_kernels.cc.cu",
+                "src/ehrlich_aberth_jax/src/gpu_ops.cc",
+                "src/ehrlich_aberth_jax/src/cuda_kernels.cc.cu",
             ],
         )
     )
 
 
 setup(
-    name="kepler_jax",
-    author="Dan Foreman-Mackey",
-    author_email="foreman.mackey@gmail.com",
-    url="https://github.com/dfm/extending-jax",
+    name="ehrlich_aberth_jax",
+    author="Fran Bartolich",
+    author_email="fb90@st-andrews.ac.uk",
+    url="https://github.com/fbartolic/extending-jax",
     license="MIT",
     description=(
         "A simple demonstration of how you can extend JAX with custom C++ and "

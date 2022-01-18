@@ -16,11 +16,13 @@ void cpu_ehrlich_aberth(void *out_vector, const void **in) {
       *reinterpret_cast<const std::int64_t *>(in[0]);  // number of polynomials (size of problem)
   const std::int64_t deg =
       *reinterpret_cast<const std::int64_t *>(in[1]);  // degree of polynomials
-  const std::int64_t itmax = *reinterpret_cast<const std::int64_t *>(in[2]);  // maxiter
+  //  const std::int64_t itmax = *reinterpret_cast<const std::int64_t *>(in[2]);  // maxiter
+
+  const std::int64_t itmax = 50;
 
   // Flattened polynomial coefficients, shape (deg + 1)*size
   const std::complex<double> *poly_flattened =
-      reinterpret_cast<const std::complex<double> *>(in[3]);
+      reinterpret_cast<const std::complex<double> *>(in[2]);
 
   // Output roots, shape deg*size
   std::complex<double> *roots = reinterpret_cast<std::complex<double> *>(out);

@@ -1,5 +1,5 @@
-#ifndef EHRLICH_ABERTH
-#define EHRLICH_ABERTH
+//#ifndef EHRLICH_ABERTH
+//#define EHRLICH_ABERTH
 #include <cstdbool>
 #include <cstdio>
 
@@ -12,6 +12,7 @@ namespace ehrlich_aberth {
 #define EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE __host__ __device__
 #else
 #define EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE inline
+#endif
 
 /* point convergence structure */
 typedef struct {
@@ -187,4 +188,3 @@ void ehrlich_aberth(const std::complex<double> *poly, std::complex<double> *root
 //  }
 //}
 }  // namespace ehrlich_aberth
-#endif

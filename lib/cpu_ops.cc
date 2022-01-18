@@ -9,7 +9,7 @@ using namespace ehrlich_aberth;
 
 namespace {
 
-void cpu_ehrlich_aberth(void *out_vector, const void **in) {
+void cpu_ehrlich_aberth(void *out, const void **in) {
   // Parse the inputs
   // reinterpret_cast here converts a void* to a pointer to a pointer for a specific type
   const std::int64_t size =
@@ -37,7 +37,7 @@ void cpu_ehrlich_aberth(void *out_vector, const void **in) {
 
 pybind11::dict Registrations() {
   pybind11::dict dict;
-  dict["cpu_ehrlich_aberth"] = EncapsulateFunction(cpu_ehrlich_aberth<std::complex<double>>);
+  dict["cpu_ehrlich_aberth"] = EncapsulateFunction(cpu_ehrlich_aberth);
   return dict;
 }
 

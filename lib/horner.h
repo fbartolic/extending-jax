@@ -9,7 +9,7 @@ namespace ehrlich_aberth {
 
 /* Global Constants */
 const double EPS = DBL_EPSILON / 2;
-const double ETA = DBL_TRUE_MIN;
+const double ETA = DBL_MIN;
 /* Unit in First Place */
 double ufp(const double p) {
   double q = p / DBL_EPSILON + p;

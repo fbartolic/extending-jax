@@ -55,7 +55,6 @@ class CMakeBuildExt(build_ext):
             "-DPython_INCLUDE_DIRS={}".format(cmake_python_include_dir),
             "-DCMAKE_BUILD_TYPE={}".format("Debug" if self.debug else "Release"),
             "-DCMAKE_PREFIX_PATH={}".format(pybind11.get_cmake_dir()),
-            "-DCMAKE_CXX_STANDARD=17",  # just a guess
         ]
         if os.environ.get("EHRLICH_ABERTH_JAX_CUDA", "no").lower() == "yes":
             cmake_args.append("-DEHRLICH_ABERTH_JAX_CUDA=yes")

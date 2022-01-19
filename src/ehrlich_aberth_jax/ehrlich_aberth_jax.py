@@ -32,8 +32,8 @@ xops = xla_client.ops
 # This function exposes the primitive to user code and this is the only
 # public-facing function in this module
 # coeffs has shape ((deg + 1), size)
-def ehrlich_aberth(coeffs, size, deg):
-    return _ehrlich_aberth_prim.bind(coeffs, size, deg)
+def ehrlich_aberth(coeffs, mock_array):
+    return _ehrlich_aberth_prim.bind(coeffs, mock_array)
 
 
 # *********************************
@@ -42,7 +42,7 @@ def ehrlich_aberth(coeffs, size, deg):
 
 # For JIT compilation we need a function to evaluate the shape and dtype of the
 # outputs of our op for some given inputs
-def _ehrlich_aberth_abstract(coeffs, size, deg):
+def _ehrlich_aberth_abstract(coeffs, mock_array):
     shape = coeffs.shape
     dtype = dtypes.canonicalize_dtype(coeffs.dtype)
     return ShapedArray(shape, dtype)
@@ -51,21 +51,25 @@ def _ehrlich_aberth_abstract(coeffs, size, deg):
 # We also need a translation rule to convert the function into an XLA op. In
 # our case this is the custom XLA op that we've written. We're wrapping two
 # translation rules into one here: one for the CPU and one for the GPU
-def _ehrlich_aberth_translation(c, coeffs, size, deg, *, platform="cpu"):
+def _ehrlich_aberth_translation(c, coeffs, mock_array, *, platform="cpu"):
     # The inputs have "shapes" that provide both the shape and the dtype
     coeffs_shape = c.get_shape(coeffs)
-    size_shape = c.get_shape(size)
-    deg_shape = c.get_shape(deg)
+    mock_array_shape = c.get_shape(mock_array)
+
+    dims_input1 = coeffs_shape.dimensions()
+    dims_input2 = mock_array_shape.dimensions()
+    size, deg = dims_input2
 
     # Extract the dtype and shape
     dtype = coeffs_shape.element_type()
     dims_input = coeffs_shape.dimensions()
-    dims_output = (size_shape.dimensions() * deg_shape.dimensions(),)
-    assert coeffs_shape.element_type() == dtype
-    assert coeffs_shape.dimensions() == dims_input
+    dims_output = (size * deg,)
 
-    shape_input = xla_client.Shape.array_shape(
-        np.dtype(dtype), dims_input, tuple(range(len(dims_input) - 1, -1, -1))
+    shape_input1 = xla_client.Shape.array_shape(
+        np.dtype(dtype), dims_input1, tuple(range(len(dims_input1) - 1, -1, -1))
+    )
+    shape_input2 = xla_client.Shape.array_shape(
+        np.dtype(dtype), dims_input2, tuple(range(len(dims_input2) - 1, -1, -1)),
     )
     shape_output = xla_client.Shape.array_shape(
         np.dtype(dtype), dims_output, tuple(range(len(dims_output) - 1, -1, -1))
@@ -92,7 +96,8 @@ def _ehrlich_aberth_translation(c, coeffs, size, deg, *, platform="cpu"):
             # The input shapes:
             operand_shapes_with_layout=(
                 xla_client.Shape.array_shape(np.dtype(np.int64), (), ()),
-                shape_input,
+                shape_input1,
+                shape_input2,
             ),
             # The output shapes:
             shape_with_layout=shape_output,

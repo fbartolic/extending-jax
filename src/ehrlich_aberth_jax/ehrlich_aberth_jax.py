@@ -51,25 +51,21 @@ def _ehrlich_aberth_abstract(coeffs, mock_array):
 # We also need a translation rule to convert the function into an XLA op. In
 # our case this is the custom XLA op that we've written. We're wrapping two
 # translation rules into one here: one for the CPU and one for the GPU
-def _ehrlich_aberth_translation(c, coeffs, mock_array, *, platform="cpu"):
+def _ehrlich_aberth_translation(c, coeffs, deg, *, platform="cpu"):
     # The inputs have "shapes" that provide both the shape and the dtype
     coeffs_shape = c.get_shape(coeffs)
-    mock_array_shape = c.get_shape(mock_array)
 
-    dims_input1 = coeffs_shape.dimensions()
-    dims_input2 = mock_array_shape.dimensions()
-    size, deg = dims_input2
+    deg_val = c.get_value(deg)
 
     # Extract the dtype and shape
     dtype = coeffs_shape.element_type()
     dims_input = coeffs_shape.dimensions()
-    dims_output = (size * deg,)
+    dims_output = (size_shape.dimensions() * deg_shape.dimensions(),)
+    assert coeffs_shape.element_type() == dtype
+    assert coeffs_shape.dimensions() == dims_input
 
-    shape_input1 = xla_client.Shape.array_shape(
-        np.dtype(dtype), dims_input1, tuple(range(len(dims_input1) - 1, -1, -1))
-    )
-    shape_input2 = xla_client.Shape.array_shape(
-        np.dtype(dtype), dims_input2, tuple(range(len(dims_input2) - 1, -1, -1)),
+    shape_input = xla_client.Shape.array_shape(
+        np.dtype(dtype), dims_input, tuple(range(len(dims_input) - 1, -1, -1))
     )
     shape_output = xla_client.Shape.array_shape(
         np.dtype(dtype), dims_output, tuple(range(len(dims_output) - 1, -1, -1))
@@ -96,8 +92,7 @@ def _ehrlich_aberth_translation(c, coeffs, mock_array, *, platform="cpu"):
             # The input shapes:
             operand_shapes_with_layout=(
                 xla_client.Shape.array_shape(np.dtype(np.int64), (), ()),
-                shape_input1,
-                shape_input2,
+                shape_input,
             ),
             # The output shapes:
             shape_with_layout=shape_output,

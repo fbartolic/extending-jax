@@ -31,8 +31,8 @@ xops = xla_client.ops
 
 # This function exposes the primitive to user code and this is the only
 # public-facing function in this module
-# coeffs has shape ((deg + 1), size)
-def ehrlich_aberth(coeffs, mock_array):
+# coeffs has shape ((deg + 1)*size)
+def ehrlich_aberth(coeffs, deg):
     return _ehrlich_aberth_prim.bind(coeffs, mock_array)
 
 
@@ -42,7 +42,7 @@ def ehrlich_aberth(coeffs, mock_array):
 
 # For JIT compilation we need a function to evaluate the shape and dtype of the
 # outputs of our op for some given inputs
-def _ehrlich_aberth_abstract(coeffs, mock_array):
+def _ehrlich_aberth_abstract(coeffs, deg):
     shape = coeffs.shape
     dtype = dtypes.canonicalize_dtype(coeffs.dtype)
     return ShapedArray(shape, dtype)

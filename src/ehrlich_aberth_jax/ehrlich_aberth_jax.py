@@ -173,7 +173,6 @@ def _ehrlich_aberth_translation(c, coeffs, *, platform="cpu"):
 # *  BOILERPLATE TO REGISTER THE OP WITH JAX  *
 # *********************************************
 _ehrlich_aberth_prim = core.Primitive("ehrlich_aberth")
-_ehrlich_aberth_prim.multiple_results = True
 _ehrlich_aberth_prim.def_impl(partial(xla.apply_primitive, _ehrlich_aberth_prim))
 _ehrlich_aberth_prim.def_abstract_eval(_ehrlich_aberth_abstract)
 

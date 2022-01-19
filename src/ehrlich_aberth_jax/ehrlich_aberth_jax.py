@@ -33,7 +33,7 @@ xops = xla_client.ops
 # public-facing function in this module
 # coeffs has shape ((deg + 1)*size)
 def ehrlich_aberth(coeffs, deg):
-    return _ehrlich_aberth_prim.bind(coeffs, mock_array)
+    return _ehrlich_aberth_prim.bind(coeffs, deg)
 
 
 # *********************************

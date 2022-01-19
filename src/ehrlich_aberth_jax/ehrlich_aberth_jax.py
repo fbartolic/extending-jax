@@ -42,6 +42,7 @@ def ehrlich_aberth(coeffs, deg):
 
 # For JIT compilation we need a function to evaluate the shape and dtype of the
 # outputs of our op for some given inputs
+@partial(jit, static_argnums=(1,))
 def _ehrlich_aberth_abstract(coeffs, deg):
     shape = coeffs.shape
     dtype = dtypes.canonicalize_dtype(coeffs.dtype)

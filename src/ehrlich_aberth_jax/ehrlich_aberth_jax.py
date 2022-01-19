@@ -32,8 +32,8 @@ xops = xla_client.ops
 # This function exposes the primitive to user code and this is the only
 # public-facing function in this module
 # coeffs has shape ((deg + 1), size)
-def ehrlich_aberth(coeffs, deg):
-    return _ehrlich_aberth_prim.bind(coeffs, deg)
+def ehrlich_aberth(coeffs, size, deg):
+    return _ehrlich_aberth_prim.bind(coeffs, size, deg)
 
 
 # *********************************
@@ -42,7 +42,7 @@ def ehrlich_aberth(coeffs, deg):
 
 # For JIT compilation we need a function to evaluate the shape and dtype of the
 # outputs of our op for some given inputs
-def _ehrlich_aberth_abstract(coeffs, deg):
+def _ehrlich_aberth_abstract(coeffs, size, deg):
     shape = coeffs.shape
     dtype = dtypes.canonicalize_dtype(coeffs.dtype)
     return ShapedArray(shape, dtype)
@@ -51,14 +51,9 @@ def _ehrlich_aberth_abstract(coeffs, deg):
 # We also need a translation rule to convert the function into an XLA op. In
 # our case this is the custom XLA op that we've written. We're wrapping two
 # translation rules into one here: one for the CPU and one for the GPU
-def _ehrlich_aberth_translation(c, coeffs, deg, *, platform="cpu"):
+def _ehrlich_aberth_translation(c, coeffs, size, deg, *, platform="cpu"):
     # The inputs have "shapes" that provide both the shape and the dtype
     coeffs_shape = c.get_shape(coeffs)
-
-    size = int(coeffs_shape.dimensions()[0] / deg)
-
-    # deg = coeffs.shape[0] - 1
-    # size = coeffs.shape[1]
 
     # Extract the dtype and shape
     dtype = coeffs_shape.element_type()

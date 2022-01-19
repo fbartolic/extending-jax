@@ -7,7 +7,7 @@ from functools import partial
 import numpy as np
 from jax import numpy as jnp
 from jax.lib import xla_client
-from jax import core, dtypes, lax
+from jax import core, dtypes, lax, jit
 from jax.interpreters import ad, batching, xla
 from jax.abstract_arrays import ShapedArray
 
@@ -51,16 +51,18 @@ def _ehrlich_aberth_abstract(coeffs, mock_array):
 # We also need a translation rule to convert the function into an XLA op. In
 # our case this is the custom XLA op that we've written. We're wrapping two
 # translation rules into one here: one for the CPU and one for the GPU
+@partial(jit, static_argnums=(2,))
 def _ehrlich_aberth_translation(c, coeffs, deg, *, platform="cpu"):
     # The inputs have "shapes" that provide both the shape and the dtype
     coeffs_shape = c.get_shape(coeffs)
 
-    deg_val = c.get_value(deg)
-
-    # Extract the dtype and shape
-    dtype = coeffs_shape.element_type()
     dims_input = coeffs_shape.dimensions()
-    dims_output = (size_shape.dimensions() * deg_shape.dimensions(),)
+
+    size = int(dims_input[0] / deg)
+    dims_output = (size * deg,)
+
+    # Extract the dtype
+    dtype = coeffs_shape.element_type()
     assert coeffs_shape.element_type() == dtype
     assert coeffs_shape.dimensions() == dims_input
 

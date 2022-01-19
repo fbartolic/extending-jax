@@ -55,7 +55,7 @@ def _ehrlich_aberth_translation(c, coeffs, deg, *, platform="cpu"):
     # The inputs have "shapes" that provide both the shape and the dtype
     coeffs_shape = c.get_shape(coeffs)
 
-    size = int(coeffs_shape.shape[0] / deg)
+    size = int(coeffs_shape[0] / deg)
 
     # deg = coeffs.shape[0] - 1
     # size = coeffs.shape[1]

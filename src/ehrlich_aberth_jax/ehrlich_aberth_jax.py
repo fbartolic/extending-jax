@@ -54,11 +54,13 @@ def _ehrlich_aberth_abstract(coeffs, size, deg):
 def _ehrlich_aberth_translation(c, coeffs, size, deg, *, platform="cpu"):
     # The inputs have "shapes" that provide both the shape and the dtype
     coeffs_shape = c.get_shape(coeffs)
+    size_shape = c.get_shape(size)
+    deg_shape = c.get_shape(deg)
 
     # Extract the dtype and shape
     dtype = coeffs_shape.element_type()
     dims_input = coeffs_shape.dimensions()
-    dims_output = (size.dimensions()[0] * deg.dimensions()[0],)
+    dims_output = (size_shape.dimensions()[0] * deg_shape.dimensions()[0],)
     assert coeffs_shape.element_type() == dtype
     assert coeffs_shape.dimensions() == dims_input
 

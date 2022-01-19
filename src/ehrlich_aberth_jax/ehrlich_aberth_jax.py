@@ -32,8 +32,8 @@ xops = xla_client.ops
 # This function exposes the primitive to user code and this is the only
 # public-facing function in this module
 # coeffs has shape ((deg + 1), size)
-def ehrlich_aberth(coeffs):
-    return _ehrlich_aberth_prim.bind(coeffs.T.reshape(-1))
+def ehrlich_aberth(coeffs, deg):
+    return _ehrlich_aberth_prim.bind(coeffs, deg)
 
 
 # *********************************
@@ -42,7 +42,7 @@ def ehrlich_aberth(coeffs):
 
 # For JIT compilation we need a function to evaluate the shape and dtype of the
 # outputs of our op for some given inputs
-def _ehrlich_aberth_abstract(coeffs):
+def _ehrlich_aberth_abstract(coeffs, deg):
     shape = coeffs.shape
     dtype = dtypes.canonicalize_dtype(coeffs.dtype)
     return ShapedArray(shape, dtype)
@@ -51,12 +51,14 @@ def _ehrlich_aberth_abstract(coeffs):
 # We also need a translation rule to convert the function into an XLA op. In
 # our case this is the custom XLA op that we've written. We're wrapping two
 # translation rules into one here: one for the CPU and one for the GPU
-def _ehrlich_aberth_translation(c, coeffs, *, platform="cpu"):
+def _ehrlich_aberth_translation(c, coeffs, deg, *, platform="cpu"):
     # The inputs have "shapes" that provide both the shape and the dtype
     coeffs_shape = c.get_shape(coeffs)
 
-    deg = coeffs.shape[0] - 1
-    size = coeffs.shape[1]
+    size = int(coeffs_shape.shape[0] / deg)
+
+    # deg = coeffs.shape[0] - 1
+    # size = coeffs.shape[1]
 
     # Extract the dtype and shape
     dtype = coeffs_shape.element_type()
@@ -72,7 +74,6 @@ def _ehrlich_aberth_translation(c, coeffs, *, platform="cpu"):
         np.dtype(dtype), dims_output, tuple(range(len(dims_output) - 1, -1, -1))
     )
 
-    # We dispatch a different call depending on the dtype
     if dtype == np.complex128:
         op_name = platform.encode() + b"_ehrlich_aberth"
     else:
@@ -86,7 +87,11 @@ def _ehrlich_aberth_translation(c, coeffs, *, platform="cpu"):
             c,
             op_name,
             # The inputs:
-            operands=(xops.ConstantLiteral(c, size, deg), coeffs),
+            operands=(
+                xops.ConstantLiteral(c, size),
+                xops.ConstantLiteral(c, deg),
+                coeffs,
+            ),
             # The input shapes:
             operand_shapes_with_layout=(
                 xla_client.Shape.array_shape(np.dtype(np.int64), (), ()),

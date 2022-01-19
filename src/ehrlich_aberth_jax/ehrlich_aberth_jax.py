@@ -60,7 +60,7 @@ def _ehrlich_aberth_translation(c, coeffs, size, deg, *, platform="cpu"):
     # Extract the dtype and shape
     dtype = coeffs_shape.element_type()
     dims_input = coeffs_shape.dimensions()
-    dims_output = (size_shape.dimensions()[0] * deg_shape.dimensions()[0],)
+    dims_output = (size_shape.dimensions() * deg_shape.dimensions(),)
     assert coeffs_shape.element_type() == dtype
     assert coeffs_shape.dimensions() == dims_input
 

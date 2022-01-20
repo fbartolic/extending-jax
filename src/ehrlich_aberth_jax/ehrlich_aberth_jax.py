@@ -25,6 +25,7 @@ except ImportError:
 else:
     for _name, _value in gpu_ops.registrations().items():
         xla_client.register_custom_call_target(_name, _value, platform="gpu")
+print("gpu_ops:", gpu_ops)
 
 xops = xla_client.ops
 
@@ -44,9 +45,10 @@ def ehrlich_aberth(coeffs):
 # outputs of our op for some given inputs
 def _ehrlich_aberth_abstract(coeffs):
     shape = coeffs.shape
+    size = shape[0] # number of polynomials
+    deg = shape[1] - 1 # degree of polynomials
     dtype = dtypes.canonicalize_dtype(coeffs.dtype)
-    return ShapedArray(shape, dtype)
-
+    return ShapedArray((size * deg,), dtype)
 
 # We also need a translation rule to convert the function into an XLA op. In
 # our case this is the custom XLA op that we've written. We're wrapping two

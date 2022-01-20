@@ -185,9 +185,9 @@ _ehrlich_aberth_prim.def_abstract_eval(_ehrlich_aberth_abstract)
 xla.backend_specific_translations["cpu"][_ehrlich_aberth_prim] = partial(
     _ehrlich_aberth_translation, platform="cpu"
 )
-# xla.backend_specific_translations["gpu"][_ehrlich_aberth_prim] = partial(
-#    _kepler_translation, platform="gpu"
-# )
+xla.backend_specific_translations["gpu"][_ehrlich_aberth_prim] = partial(
+   _ehrlich_aberth_translation, platform="gpu"
+)
 
 # Connect the JVP and batching rules
 # ad.primitive_jvps[_ehrlich_aberth_prim] = _kepler_jvp

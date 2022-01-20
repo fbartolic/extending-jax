@@ -28,10 +28,10 @@ void cpu_ehrlich_aberth(void *out, const void **in) {
   std::complex<double> *roots = reinterpret_cast<std::complex<double> *>(out);
 
   // Compute roots
-  std::int64_t j = 0;
-  for (std::int64_t i = 0; i < size * deg; i += (deg + 1)) {
-    ehrlich_aberth::ehrlich_aberth(poly_flattened + i, roots + i - j, deg, itmax);
-    j++;
+  std::int64_t i;
+  for (std::int64_t idx = 0; idx < size; ++idx) {
+    i = idx * (deg + 1);
+    ehrlich_aberth::ehrlich_aberth(poly_flattened + i, roots + i - idx, deg, itmax);
   }
 }
 

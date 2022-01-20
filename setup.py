@@ -55,6 +55,7 @@ class CMakeBuildExt(build_ext):
             "-DPython_INCLUDE_DIRS={}".format(cmake_python_include_dir),
             "-DCMAKE_BUILD_TYPE={}".format("Debug" if self.debug else "Release"),
             "-DCMAKE_PREFIX_PATH={}".format(pybind11.get_cmake_dir()),
+            "-DCMAKE_CXX_COMPILER=g++",
         ]
         if os.environ.get("EHRLICH_ABERTH_JAX_CUDA", "no").lower() == "yes":
             cmake_args.append("-DEHRLICH_ABERTH_JAX_CUDA=yes")
@@ -81,16 +82,16 @@ extensions = [
     Extension("ehrlich_aberth_jax.cpu_ops", ["src/ehrlich_aberth_jax/src/cpu_ops.cc"],),
 ]
 
-# if os.environ.get("EHRLICH_ABERTH_JAX_CUDA", "no").lower() == "yes":
-#    extensions.append(
-#        Extension(
-#            "ehrlich_aberth_jax.gpu_ops",
-#            [
-#                "src/ehrlich_aberth_jax/src/gpu_ops.cc",
-#                "src/ehrlich_aberth_jax/src/cuda_kernels.cc.cu",
-#            ],
-#        )
-#    )
+if os.environ.get("EHRLICH_ABERTH_JAX_CUDA", "no").lower() == "yes":
+   extensions.append(
+       Extension(
+           "ehrlich_aberth_jax.gpu_ops",
+           [
+               "src/ehrlich_aberth_jax/src/gpu_ops.cc",
+               "src/ehrlich_aberth_jax/src/cuda_kernels.cc.cu",
+           ],
+       )
+   )
 
 setup(
     name="ehrlich_aberth_jax",

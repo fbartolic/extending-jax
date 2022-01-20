@@ -32,8 +32,8 @@ xops = xla_client.ops
 # This function exposes the primitive to user code and this is the only
 # public-facing function in this module
 # coeffs has shape ((deg + 1)*size)
-def ehrlich_aberth(coeffs, deg):
-    return _ehrlich_aberth_prim.bind(coeffs, deg)
+def ehrlich_aberth(coeffs):
+    return _ehrlich_aberth_prim.bind(coeffs)
 
 
 # *********************************
@@ -42,8 +42,7 @@ def ehrlich_aberth(coeffs, deg):
 
 # For JIT compilation we need a function to evaluate the shape and dtype of the
 # outputs of our op for some given inputs
-@partial(jit, static_argnums=(1,))
-def _ehrlich_aberth_abstract(coeffs, deg):
+def _ehrlich_aberth_abstract(coeffs):
     shape = coeffs.shape
     dtype = dtypes.canonicalize_dtype(coeffs.dtype)
     return ShapedArray(shape, dtype)
@@ -52,14 +51,17 @@ def _ehrlich_aberth_abstract(coeffs, deg):
 # We also need a translation rule to convert the function into an XLA op. In
 # our case this is the custom XLA op that we've written. We're wrapping two
 # translation rules into one here: one for the CPU and one for the GPU
-@partial(jit, static_argnums=(2,))
-def _ehrlich_aberth_translation(c, coeffs, deg, *, platform="cpu"):
+def _ehrlich_aberth_translation(c, coeffs, platform="cpu"):
     # The inputs have "shapes" that provide both the shape and the dtype
     coeffs_shape = c.get_shape(coeffs)
 
+    # Input shapes
     dims_input = coeffs_shape.dimensions()
 
-    size = int(dims_input[0] / deg)
+    size = dims_input[0] # number of polynomials
+    deg = dims_input[1] - 1 # degree of polynomials
+
+    # Output shapes
     dims_output = (size * deg,)
 
     # Extract the dtype
@@ -95,33 +97,31 @@ def _ehrlich_aberth_translation(c, coeffs, deg, *, platform="cpu"):
             # The input shapes:
             operand_shapes_with_layout=(
                 xla_client.Shape.array_shape(np.dtype(np.int64), (), ()),
+                xla_client.Shape.array_shape(np.dtype(np.int64), (), ()),
                 shape_input,
             ),
             # The output shapes:
             shape_with_layout=shape_output,
         )
-    else:
-        raise ValueError(
-            "The 'ehrlich_aberth' module was not compiled with CUDA support"
-        )
+    
+    elif platform == "gpu":
+        if gpu_ops is None:
+            raise ValueError(
+                "The 'ehrlich_aberth_jax' module was not compiled with CUDA support"
+            )
 
-    #        if gpu_ops is None:
-    #            raise ValueError(
-    #                "The 'kepler_jax' module was not compiled with CUDA support"
-    #            )
-    #
-    #        # On the GPU, we do things a little differently and encapsulate the
-    #        # dimension using the 'opaque' parameter
-    #        opaque = gpu_ops.build_kepler_descriptor(size)
-    #
-    #        return xops.CustomCallWithLayout(
-    #            c,
-    #            op_name,
-    #            operands=(mean_anom, ecc),
-    #            operand_shapes_with_layout=(shape, shape),
-    #            shape_with_layout=xla_client.Shape.tuple_shape((shape, shape)),
-    #            opaque=opaque,
-    #        )
+        # On the GPU, we do things a little differently and encapsulate the
+        # dimension using the 'opaque' parameter
+        opaque = gpu_ops.build_ehrlich_aberth_descriptor(size, deg)
+
+        return xops.CustomCallWithLayout(
+            c,
+            op_name,
+            operands=(coeffs,),
+            operand_shapes_with_layout=(shape_input,),
+            shape_with_layout=shape_output,
+            opaque=opaque,
+        )
 
     raise ValueError("Unsupported platform; this must be either 'cpu' or 'gpu'")
 

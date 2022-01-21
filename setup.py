@@ -55,12 +55,13 @@ class CMakeBuildExt(build_ext):
             "-DPython_INCLUDE_DIRS={}".format(cmake_python_include_dir),
             "-DCMAKE_BUILD_TYPE={}".format("Debug" if self.debug else "Release"),
             "-DCMAKE_PREFIX_PATH={}".format(pybind11.get_cmake_dir()),
-            "-DCMAKE_CXX_COMPILER=g++",
+#            "-DCMAKE_CXX_COMPILER=g++",
         ]
-
         if os.environ.get("EHRLICH_ABERTH_JAX_CUDA", "no").lower() == "yes":
             cmake_args.append("-DEHRLICH_ABERTH_JAX_CUDA=yes")
-#            cmake_args.append("-DCMAKE_CUDA_COMPILER=/usr/local/cuda-11.2/bin/nvcc")
+#            cmake_args.append("-DCMAKE_CUDA_COMPILER=/home/fb90/bin/cuda-11.6/bin/nvcc")
+#            cmake_args.append("-DCMAKE_CUDA_FLAGS=-ccbin /path/to/compiler")
+#            cmake_args.append("-DCMAKE_CUDA_HOST_COMPILER=/usr/local/cuda-11.2/bin/nvcc")
 
 
         os.makedirs(self.build_temp, exist_ok=True)

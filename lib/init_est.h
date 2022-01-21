@@ -5,7 +5,7 @@
 #include <complex>
 #include <cstdlib>
 
-namespace ehrlich_aberth {
+namespace ehrlich_aberth_jax {
 
 /* point structure */
 typedef struct {
@@ -67,5 +67,5 @@ void init_est(const double *alpha, const unsigned int deg, std::complex<double> 
     k += nzeros;
   }
 }
-}  // namespace ehrlich_aberth
+}  // namespace ehrlich_aberth_jax
 #endif

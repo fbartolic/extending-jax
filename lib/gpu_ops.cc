@@ -7,7 +7,7 @@
 #include "kernels.h"
 #include "pybind11_kernel_helpers.h"
 
-using namespace ehrlich_aberth;
+using namespace ehrlich_aberth_jax;
 
 namespace {
 pybind11::dict Registrations() {

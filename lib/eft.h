@@ -2,7 +2,7 @@
 #define EFT
 #include <complex>
 
-namespace ehrlich_aberth {
+namespace ehrlich_aberth_jax {
 /* EFT Data Structure */
 struct eft {
   double fl_res, fl_err;
@@ -15,5 +15,5 @@ struct eft_cmplx_sum {
 struct eft_cmplx_prod {
   std::complex<double> fl_res, fl_err1, fl_err2, fl_err3;
 };
-}  // namespace ehrlich_aberth
+}  // namespace ehrlich_aberth_jax
 #endif

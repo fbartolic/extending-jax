@@ -11,7 +11,7 @@
 #include <string>
 #include <type_traits>
 
-namespace ehrlich_aberth {
+namespace ehrlich_aberth_jax {
 
 // https://en.cppreference.com/w/cpp/numeric/bit_cast
 template <class To, class From>
@@ -41,6 +41,6 @@ const T* UnpackDescriptor(const char* opaque, std::size_t opaque_len) {
   return bit_cast<const T*>(opaque);
 }
 
-}  // namespace ehrlich_aberth
+}  // namespace ehrlich_aberth_jax
 
 #endif

@@ -6,7 +6,7 @@
 
 #include "eft.h"
 
-// namespace ehrlich_aberth {
+namespace ehrlich_aberth_jax {
 /* Global Constants */
 const double eps = DBL_EPSILON / 2;
 const double eta = DBL_TRUE_MIN;
@@ -94,5 +94,5 @@ double complex fast_cmplx_acc_sum(double complex* p, const unsigned int n) {
   // return
   return real + I * imag;
 }
-//}  // namespace ehrlich_aberth
+}  // namespace ehrlich_aberth_jax
 #endif

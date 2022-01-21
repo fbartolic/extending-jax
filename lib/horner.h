@@ -5,7 +5,7 @@
 #include <cstdio>
 
 #include "eft.h"
-namespace ehrlich_aberth {
+namespace ehrlich_aberth_jax {
 
 /* Global Constants */
 const double EPS = DBL_EPSILON / 2;
@@ -375,5 +375,5 @@ void accsum_comp_horner(const std::complex<double> *poly, const std::complex<dou
   // add error back into result
   *h += e;
 }
-}  // namespace ehrlich_aberth
+}  // namespace ehrlich_aberth_jax
 #endif

@@ -6,7 +6,7 @@
 #include "horner.h"
 #include "init_est.h"
 
-namespace ehrlich_aberth {
+namespace ehrlich_aberth_jax {
 
 #ifdef __CUDACC__
 #define EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE __host__ __device__
@@ -187,4 +187,4 @@ void ehrlich_aberth(const std::complex<double> *poly, std::complex<double> *root
 //    printf("not all roots comp converged\n");
 //  }
 //}
-}  // namespace ehrlich_aberth
+}  // namespace ehrlich_aberth_jax

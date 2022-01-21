@@ -5,7 +5,7 @@
 #include "ehrlich_aberth.h"
 #include "pybind11_kernel_helpers.h"
 
-using namespace ehrlich_aberth;
+using namespace ehrlich_aberth_jax;
 
 namespace {
 
@@ -31,7 +31,7 @@ void cpu_ehrlich_aberth(void *out, const void **in) {
   std::int64_t i;
   for (std::int64_t idx = 0; idx < size; ++idx) {
     i = idx * (deg + 1);
-    ehrlich_aberth::ehrlich_aberth(poly_flattened + i, roots + i - idx, deg, itmax);
+    ehrlich_aberth_jax::ehrlich_aberth(poly_flattened + i, roots + i - idx, deg, itmax);
   }
 }
 

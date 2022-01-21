@@ -11,7 +11,7 @@
 
 #include "kernel_helpers.h"
 
-namespace ehrlich_aberth {
+namespace ehrlich_aberth_jax {
 
 template <typename T>
 pybind11::bytes PackDescriptor(const T& descriptor) {
@@ -23,6 +23,6 @@ pybind11::capsule EncapsulateFunction(T* fn) {
   return pybind11::capsule(bit_cast<void*>(fn), "xla._CUSTOM_CALL_TARGET");
 }
 
-}  // namespace ehrlich_aberth
+}  // namespace ehrlich_aberth_jax
 
 #endif

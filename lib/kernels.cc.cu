@@ -20,11 +20,10 @@ __global__ void ehrlich_aberth_kernel(std::int64_t size, std::int64_t deg,
   for (std::int64_t idx = blockIdx.x * blockDim.x + threadIdx.x; idx < size;
        idx += blockDim.x * gridDim.x) {
     i = idx * (deg + 1);
-    ehrlich_aberth::ehrlich_aberth(pooly + i, roots + i - idx, deg, itmax);
+    ehrlich_aberth(poly + i, roots + i - idx, deg, itmax);
   }
 }
 
-}
 
 void ThrowIfError(cudaError_t error) {
   if (error != cudaSuccess) {
@@ -44,8 +43,7 @@ inline void apply_ehrlich_aberth(cudaStream_t stream, void **buffers, const char
 
   const int block_dim = 128;
   const int grid_dim = std::min<int>(1024, (size + block_dim - 1) / block_dim);
-  ehrlich_aberth_kernel<std::complex<double>>
-      <<<grid_dim, block_dim, 0, stream>>>(size, deg, poly, roots);
+  ehrlich_aberth_kernel<<<grid_dim, block_dim, 0, stream>>>(size, deg, poly, roots);
 
   ThrowIfError(cudaGetLastError());
 }
@@ -54,7 +52,7 @@ inline void apply_ehrlich_aberth(cudaStream_t stream, void **buffers, const char
 
 void gpu_ehrlich_aberth(cudaStream_t stream, void **buffers, const char *opaque,
                         std::size_t opaque_len) {
-  apply_ehrlich_aberth<double>(stream, buffers, opaque, opaque_len);
+  apply_ehrlich_aberth(stream, buffers, opaque, opaque_len);
 }
 
 }  // namespace ehrlich_aberth_jax

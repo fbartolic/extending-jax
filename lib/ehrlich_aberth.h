@@ -48,8 +48,10 @@ thrust::complex<double> rcorrection(const thrust::complex<double> *roots,
          ((double)deg * roots[j] * h - hd - thrust::pow(roots[j], 2) * h * corr);
 }
 /* The function we want to expose as a JAX primitive*/
-void ehrlich_aberth(const thrust::complex<double> *poly, thrust::complex<double> *roots,
-                    const unsigned int deg, const unsigned int itmax) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void ehrlich_aberth(const thrust::complex<double> *poly,
+                                                        thrust::complex<double> *roots,
+                                                        const unsigned int deg,
+                                                        const unsigned int itmax) {
   // local variables
   bool s;
   double b;

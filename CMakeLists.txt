@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.12...3.18)
 project(ehrlich_aberth_jax LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CUDA_STANDARD 14)
+
 message(STATUS "Using CMake version " ${CMAKE_VERSION})
 
 find_package(Python COMPONENTS Interpreter Development REQUIRED)

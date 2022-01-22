@@ -21,11 +21,11 @@ void cpu_ehrlich_aberth(void *out, const void **in) {
   const std::int64_t itmax = 50;
 
   // Flattened polynomial coefficients, shape (deg + 1)*size
-  const std::complex<double> *poly_flattened =
-      reinterpret_cast<const std::complex<double> *>(in[2]);
+  const thrust::complex<double> *poly_flattened =
+      reinterpret_cast<const thrust::complex<double> *>(in[2]);
 
   // Output roots, shape deg*size
-  std::complex<double> *roots = reinterpret_cast<std::complex<double> *>(out);
+  thrust::complex<double> *roots = reinterpret_cast<thrust::complex<double> *>(out);
 
   // Compute roots
   std::int64_t i;

@@ -1,11 +1,19 @@
 #ifndef INIT_EST
 #define INIT_EST
+#include <thrust/complex.h>
+
 #include <cfloat>
 #include <cmath>
-#include <complex>
 #include <cstdlib>
 
 namespace ehrlich_aberth_jax {
+
+#ifdef __CUDACC__
+#define EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE __host__ __device__
+#else
+#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CPP
+#define EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE inline
+#endif
 
 /* point structure */
 typedef struct {
@@ -32,7 +40,7 @@ void convex_hull(point *points, const unsigned int npoints, point *hull, unsigne
 }
 /* init_est:
  */
-void init_est(const double *alpha, const unsigned int deg, std::complex<double> *roots) {
+void init_est(const double *alpha, const unsigned int deg, thrust::complex<double> *roots) {
   // local arrays
   point points[deg + 1];
   point hull[deg + 1];
@@ -61,8 +69,8 @@ void init_est(const double *alpha, const unsigned int deg, std::complex<double> 
     r = a1 / a2;
     ang = pi2 / nzeros;
     for (j = 0; j < nzeros; j++) {
-      roots[k + j] =
-          std::complex<double>(r * (cos(ang * j + th * i + sigma), sin(ang * j + th * i + sigma)));
+      roots[k + j] = thrust::complex<double>(
+          r * (cos(ang * j + th * i + sigma), sin(ang * j + th * i + sigma)));
     }
     k += nzeros;
   }

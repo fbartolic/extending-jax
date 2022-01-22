@@ -7,6 +7,13 @@
 #include "eft.h"
 
 namespace ehrlich_aberth_jax {
+
+#ifdef __CUDACC__
+#define EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE __host__ __device__
+#else
+#define EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE inline
+#endif
+
 /* Global Constants */
 const double eps = DBL_EPSILON / 2;
 const double eta = DBL_TRUE_MIN;
@@ -77,7 +84,7 @@ start:
   return t + (tau + sum(p, n));
 }
 /* Fast Complex Accurate Summation */
-double complex fast_cmplx_acc_sum(double complex* p, const unsigned int n) {
+thrust::complex<double> fast_cmplx_acc_sum(thrust::complex<double>* p, const unsigned int n) {
   // variables
   double* realp = (double*)malloc(n * sizeof(double));
   double* imagp = (double*)malloc(n * sizeof(double));

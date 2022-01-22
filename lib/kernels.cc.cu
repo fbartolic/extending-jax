@@ -11,8 +11,8 @@ namespace ehrlich_aberth_jax {
 namespace {
 
 __global__ void ehrlich_aberth_kernel(std::int64_t size, std::int64_t deg,
-                                      const std::complex<double> *poly,
-                                      std::complex<double> *roots) {
+                                      const thrust::complex<double> *poly,
+                                      thrust::complex<double> *roots) {
   const std::int64_t itmax = 50;
 
   // Compute roots
@@ -23,7 +23,6 @@ __global__ void ehrlich_aberth_kernel(std::int64_t size, std::int64_t deg,
     ehrlich_aberth(poly + i, roots + i - idx, deg, itmax);
   }
 }
-
 
 void ThrowIfError(cudaError_t error) {
   if (error != cudaSuccess) {
@@ -38,8 +37,9 @@ inline void apply_ehrlich_aberth(cudaStream_t stream, void **buffers, const char
   const std::int64_t size = d.size;
   const std::int64_t deg = d.deg;
 
-  const std::complex<double> *poly = reinterpret_cast<const std::complex<double> *>(buffers[0]);
-  std::complex<double> *roots = reinterpret_cast<std::complex<double> *>(buffers[1]);
+  const thrust::complex<double> *poly =
+      reinterpret_cast<const thrust::complex<double> *>(buffers[0]);
+  thrust::complex<double> *roots = reinterpret_cast<thrust::complex<double> *>(buffers[1]);
 
   const int block_dim = 128;
   const int grid_dim = std::min<int>(1024, (size + block_dim - 1) / block_dim);

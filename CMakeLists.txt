@@ -6,6 +6,9 @@ message(STATUS "Using CMake version " ${CMAKE_VERSION})
 find_package(Python COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
 
+include_directories("lib/extern/cub-1.15.0")
+include_directories("lib/extern/thrust-1.15.0")
+
 include_directories(${CMAKE_CURRENT_LIST_DIR}/lib)
 
 # CPU op library

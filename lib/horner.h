@@ -7,6 +7,12 @@
 #include "eft.h"
 namespace ehrlich_aberth_jax {
 
+#ifdef __CUDACC__
+#define EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE __host__ __device__
+#else
+#define EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE inline
+#endif
+
 /* Global Constants */
 const double EPS = DBL_EPSILON / 2;
 const double ETA = DBL_MIN;
@@ -38,16 +44,16 @@ void two_prod(const double a, const double b, struct eft *res) {
   res->fl_err = fma(a, b, -res->fl_res);
 }
 /* Two Sum Cmplx */
-void two_sum_cmplx(const std::complex<double> a, const std::complex<double> b, struct eft *eft_arr,
-                   struct eft_cmplx_sum *res) {
+void two_sum_cmplx(const thrust::complex<double> a, const thrust::complex<double> b,
+                   struct eft *eft_arr, struct eft_cmplx_sum *res) {
   // struct eft real_eft, imag_eft;
   two_sum(a.real(), b.real(), eft_arr);
   two_sum(a.imag(), b.imag(), eft_arr + 1);
-  res->fl_res = std::complex<double>(eft_arr[0].fl_res, eft_arr[1].fl_res);
-  res->fl_err = std::complex<double>(eft_arr[0].fl_err, eft_arr[1].fl_err);
+  res->fl_res = thrust::complex<double>(eft_arr[0].fl_res, eft_arr[1].fl_res);
+  res->fl_err = thrust::complex<double>(eft_arr[0].fl_err, eft_arr[1].fl_err);
 }
 /* Two Product Cmplx */
-void two_prod_cmplx(const std::complex<double> a, const std::complex<double> b,
+void two_prod_cmplx(const thrust::complex<double> a, const thrust::complex<double> b,
                     struct eft *eft_arr, struct eft_cmplx_prod *res) {
   // struct eft real_prod1, real_prod2, real_prod3, real_prod4, real_sum1, real_sum2;
   two_prod(a.real(), b.real(), eft_arr);
@@ -56,10 +62,10 @@ void two_prod_cmplx(const std::complex<double> a, const std::complex<double> b,
   two_prod(a.imag(), b.real(), eft_arr + 3);
   two_sum(eft_arr[0].fl_res, -eft_arr[1].fl_res, eft_arr + 4);
   two_sum(eft_arr[2].fl_res, eft_arr[3].fl_res, eft_arr + 5);
-  res->fl_res = std::complex<double>(eft_arr[4].fl_res, eft_arr[5].fl_res);
-  res->fl_err1 = std::complex<double>(eft_arr[0].fl_err, eft_arr[2].fl_err);
-  res->fl_err2 = std::complex<double>(-eft_arr[1].fl_err, eft_arr[3].fl_err);
-  res->fl_err3 = std::complex<double>(eft_arr[4].fl_err, eft_arr[5].fl_err);
+  res->fl_res = thrust::complex<double>(eft_arr[4].fl_res, eft_arr[5].fl_res);
+  res->fl_err1 = thrust::complex<double>(eft_arr[0].fl_err, eft_arr[2].fl_err);
+  res->fl_err2 = thrust::complex<double>(-eft_arr[1].fl_err, eft_arr[3].fl_err);
+  res->fl_err3 = thrust::complex<double>(eft_arr[4].fl_err, eft_arr[5].fl_err);
 }
 /* Error Free Array Extraction */
 double extract(double *p, double sigma) {
@@ -120,12 +126,12 @@ start:
   return t + (tau + sum(p));
 }
 /* Fast Complex Accurate Summation */
-std::complex<double> fast_cmplx_acc_sum(std::complex<double> *p) {
+thrust::complex<double> fast_cmplx_acc_sum(thrust::complex<double> *p) {
   // variables
   double realp[4] = {p[0].real(), p[1].real(), p[2].real(), p[3].real()};
   double imagp[4] = {p[0].imag(), p[1].imag(), p[2].imag(), p[3].imag()};
   // return
-  return std::complex<double>(fast_acc_sum(realp), fast_acc_sum(imagp));
+  return thrust::complex<double>(fast_acc_sum(realp), fast_acc_sum(imagp));
 }
 /* Sort */
 void sort(double *p) {
@@ -167,12 +173,12 @@ double priest_sum(double *p) {
   return s;
 }
 /* Priest Complex Summation */
-std::complex<double> priest_cmplx_sum(std::complex<double> *p) {
+thrust::complex<double> priest_cmplx_sum(thrust::complex<double> *p) {
   // variables
   double realp[4] = {p[0].real(), p[1].real(), p[2].real(), p[3].real()};
   double imagp[4] = {p[0].imag(), p[1].imag(), p[2].imag(), p[3].imag()};
   // return
-  return std::complex<double>(priest_sum(realp), priest_sum(imagp));
+  return thrust::complex<double>(priest_sum(realp), priest_sum(imagp));
 }
 /* Horner Method with Double Real Arithmetic */
 void horner_dble(const double *poly, const double x, const unsigned int deg, double *h) {
@@ -191,8 +197,9 @@ void rhorner_dble(const double *poly, const double x, const unsigned int deg, do
   }
 }
 /* Horner Method with Complex Arithmetic */
-void horner_cmplx(const std::complex<double> *poly, const std::complex<double> x,
-                  const unsigned int deg, std::complex<double> *h, std::complex<double> *hd) {
+void horner_cmplx(const thrust::complex<double> *poly, const thrust::complex<double> x,
+                  const unsigned int deg, thrust::complex<double> *h,
+                  thrust::complex<double> *hd) {
   // Horner's method
   *h = poly[deg];
   *hd = 0;
@@ -202,8 +209,9 @@ void horner_cmplx(const std::complex<double> *poly, const std::complex<double> x
   }
 }
 /* Reversal Horner Method with Complex Arithmetic */
-void rhorner_cmplx(const std::complex<double> *poly, const std::complex<double> x,
-                   const unsigned int deg, std::complex<double> *h, std::complex<double> *hd) {
+void rhorner_cmplx(const thrust::complex<double> *poly, const thrust::complex<double> x,
+                   const unsigned int deg, thrust::complex<double> *h,
+                   thrust::complex<double> *hd) {
   // Reversal Horner's method
   *h = poly[0];
   *hd = 0;
@@ -213,8 +221,8 @@ void rhorner_cmplx(const std::complex<double> *poly, const std::complex<double> 
   }
 }
 /* Horner Method */
-void horner(const std::complex<double> *poly, const std::complex<double> x, const unsigned int deg,
-            std::complex<double> *h) {
+void horner(const thrust::complex<double> *poly, const thrust::complex<double> x,
+            const unsigned int deg, thrust::complex<double> *h) {
   // Horner's method
   *h = poly[deg];
   for (int i = deg - 1; i >= 0; --i) {
@@ -222,15 +230,15 @@ void horner(const std::complex<double> *poly, const std::complex<double> x, cons
   }
 }
 /* Horner's Method with Complex Compensated Arithmetic */
-void horner_comp_cmplx(const std::complex<double> *poly, const std::complex<double> x,
-                       const unsigned int deg, std::complex<double> *h, std::complex<double> *hd,
-                       double *eb) {
+void horner_comp_cmplx(const thrust::complex<double> *poly, const thrust::complex<double> x,
+                       const unsigned int deg, thrust::complex<double> *h,
+                       thrust::complex<double> *hd, double *eb) {
   // local variables
   struct eft eft_arr[6];
   struct eft_cmplx_sum tsc;
   struct eft_cmplx_prod tpc;
-  std::complex<double> e = 0, ed = 0;
-  std::complex<double> p[4];
+  thrust::complex<double> e = 0, ed = 0;
+  thrust::complex<double> p[4];
   double ap[4];
   // Horner's method
   *h = poly[deg];
@@ -260,28 +268,28 @@ void horner_comp_cmplx(const std::complex<double> *poly, const std::complex<doub
     p[3] = tsc.fl_err;
     e = e * x + priest_cmplx_sum(p);
     // update error bound
-    // *eb = *eb*std::abs(x) + (std::abs(tpc.fl_err1) + std::abs(tpc.fl_err2) +
-    // std::abs(tpc.fl_err3) + std::abs(tsc.fl_err));
-    ap[0] = std::abs(tpc.fl_err1);
-    ap[1] = std::abs(tpc.fl_err2);
-    ap[2] = std::abs(tpc.fl_err3);
-    ap[3] = std::abs(tsc.fl_err);
-    *eb = *eb * std::abs(x) + priest_sum(ap);
+    // *eb = *eb*thrust::abs(x) + (thrust::abs(tpc.fl_err1) + thrust::abs(tpc.fl_err2) +
+    // thrust::abs(tpc.fl_err3) + thrust::abs(tsc.fl_err));
+    ap[0] = thrust::abs(tpc.fl_err1);
+    ap[1] = thrust::abs(tpc.fl_err2);
+    ap[2] = thrust::abs(tpc.fl_err3);
+    ap[3] = thrust::abs(tsc.fl_err);
+    *eb = *eb * thrust::abs(x) + priest_sum(ap);
   }
   // add error back into result
   *h += e;
   *hd += ed;
 }
 /* Reversal Horner's Method with Complex Compensated Arithmetic */
-void rhorner_comp_cmplx(const std::complex<double> *poly, const std::complex<double> x,
-                        const unsigned int deg, std::complex<double> *h, std::complex<double> *hd,
-                        double *eb) {
+void rhorner_comp_cmplx(const thrust::complex<double> *poly, const thrust::complex<double> x,
+                        const unsigned int deg, thrust::complex<double> *h,
+                        thrust::complex<double> *hd, double *eb) {
   // local variables
   struct eft eft_arr[6];
   struct eft_cmplx_sum tsc;
   struct eft_cmplx_prod tpc;
-  std::complex<double> e = 0, ed = 0;
-  std::complex<double> p[4];
+  thrust::complex<double> e = 0, ed = 0;
+  thrust::complex<double> p[4];
   double ap[4];
   // Horner's method
   *h = poly[0];
@@ -311,27 +319,27 @@ void rhorner_comp_cmplx(const std::complex<double> *poly, const std::complex<dou
     p[3] = tsc.fl_err;
     e = e * x + priest_cmplx_sum(p);
     // update error bound
-    // *eb = *eb*std::abs(x) + (std::abs(tpc.fl_err1) + std::abs(tpc.fl_err2) +
-    // std::abs(tpc.fl_err3) + std::abs(tsc.fl_err));
-    ap[0] = std::abs(tpc.fl_err1);
-    ap[1] = std::abs(tpc.fl_err2);
-    ap[2] = std::abs(tpc.fl_err3);
-    ap[3] = std::abs(tsc.fl_err);
-    *eb = *eb * std::abs(x) + priest_sum(ap);
+    // *eb = *eb*thrust::abs(x) + (thrust::abs(tpc.fl_err1) + thrust::abs(tpc.fl_err2) +
+    // thrust::abs(tpc.fl_err3) + thrust::abs(tsc.fl_err));
+    ap[0] = thrust::abs(tpc.fl_err1);
+    ap[1] = thrust::abs(tpc.fl_err2);
+    ap[2] = thrust::abs(tpc.fl_err3);
+    ap[3] = thrust::abs(tsc.fl_err);
+    *eb = *eb * thrust::abs(x) + priest_sum(ap);
   }
   // add error back into result
   *h += e;
   *hd += ed;
 }
 /* Priest CompHorner */
-void priest_comp_horner(const std::complex<double> *poly, const std::complex<double> x,
-                        const unsigned int deg, std::complex<double> *h) {
+void priest_comp_horner(const thrust::complex<double> *poly, const thrust::complex<double> x,
+                        const unsigned int deg, thrust::complex<double> *h) {
   // local variables
   struct eft eft_arr[6];
   struct eft_cmplx_sum tsc;
   struct eft_cmplx_prod tpc;
-  std::complex<double> e = 0;
-  std::complex<double> p[4];
+  thrust::complex<double> e = 0;
+  thrust::complex<double> p[4];
   // Horner's method
   *h = poly[deg];
   for (int i = deg - 1; i >= 0; --i) {
@@ -350,14 +358,14 @@ void priest_comp_horner(const std::complex<double> *poly, const std::complex<dou
   *h += e;
 }
 /* AccSum CompHorner */
-void accsum_comp_horner(const std::complex<double> *poly, const std::complex<double> x,
-                        const unsigned int deg, std::complex<double> *h) {
+void accsum_comp_horner(const thrust::complex<double> *poly, const thrust::complex<double> x,
+                        const unsigned int deg, thrust::complex<double> *h) {
   // local variables
   struct eft eft_arr[6];
   struct eft_cmplx_sum tsc;
   struct eft_cmplx_prod tpc;
-  std::complex<double> e = 0;
-  std::complex<double> p[4];
+  thrust::complex<double> e = 0;
+  thrust::complex<double> p[4];
   // Horner's method
   *h = poly[deg];
   for (int i = deg - 1; i >= 0; --i) {

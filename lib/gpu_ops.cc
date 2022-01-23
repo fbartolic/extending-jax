@@ -18,7 +18,7 @@ pybind11::dict Registrations() {
 
 PYBIND11_MODULE(gpu_ops, m) {
   m.def("registrations", &Registrations);
-  m.def("build_ehrlich_aberth_descriptor", [](std::int64_t size, std::int64_t deg)) {
+  m.def("build_ehrlich_aberth_descriptor", [](std::int64_t size, std::int64_t deg) {
     return PackDescriptor(EhrlichAberthDescriptor{size, deg});
   });
 }

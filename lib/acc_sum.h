@@ -18,18 +18,18 @@ namespace ehrlich_aberth_jax {
 const double eps = DBL_EPSILON / 2;
 const double eta = DBL_TRUE_MIN;
 /* Unit in First Place */
-double ufp(const double p) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE double ufp(const double p) {
   double q = p / (2 * eps) + p;
   return fabs(q - (1 - eps) * q);
 }
 /* Two Sum */
-void two_sum(const double a, const double b, struct eft* res) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void two_sum(const double a, const double b, struct eft* res) {
   res->fl_res = a + b;
   double t = res->fl_res - a;
   res->fl_err = (a - (res->fl_res - t)) + (b - t);
 }
 /* Error Free Array Extraction */
-double extract(double* p, double sigma, const unsigned int n) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE double extract(double* p, double sigma, const unsigned int n) {
   struct eft res;
   for (int i = 0; i < n; ++i) {
     two_sum(sigma, p[i], &res);
@@ -39,7 +39,7 @@ double extract(double* p, double sigma, const unsigned int n) {
   return sigma;
 }
 /* Sum */
-double sum(const double* p, const unsigned int n) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE double sum(const double* p, const unsigned int n) {
   double s = p[0];
   for (int i = 1; i < n; ++i) {
     s += p[i];
@@ -47,7 +47,7 @@ double sum(const double* p, const unsigned int n) {
   return s;
 }
 /* Absolute Sum */
-double abs_sum(const double* p, const unsigned int n) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE double abs_sum(const double* p, const unsigned int n) {
   double s = fabs(p[0]);
   for (int i = 1; i < n; ++i) {
     s += fabs(p[i]);
@@ -55,7 +55,7 @@ double abs_sum(const double* p, const unsigned int n) {
   return s;
 }
 /* Fast Accurate Summation */
-double fast_acc_sum(double* p, const unsigned int n) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE double fast_acc_sum(double* p, const unsigned int n) {
   // variables
   double phi, sigma, sigma_new, T, t, t_new, tau, u;
 // goto label
@@ -84,22 +84,25 @@ start:
   return t + (tau + sum(p, n));
 }
 /* Fast Complex Accurate Summation */
-thrust::complex<double> fast_cmplx_acc_sum(thrust::complex<double>* p, const unsigned int n) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE thrust::complex<double> fast_cmplx_acc_sum(
+    thrust::complex<double>* p, const unsigned int n) {
   // variables
-  double* realp = (double*)malloc(n * sizeof(double));
-  double* imagp = (double*)malloc(n * sizeof(double));
+  double* realp = new double[n];
+  double* imagp = new double[n];
   for (int i = 0; i < n; i++) {
-    realp[i] = creal(p[i]);
-    imagp[i] = cimag(p[i]);
+    realp[i] = p[i].real();
+    imagp[i] = p[i].imag();
   }
   // summations
   double real = fast_acc_sum(realp, n);
   double imag = fast_acc_sum(imagp, n);
+
   // free
-  free(realp);
-  free(imagp);
+  delete[] realp;
+  delete[] imagp;
+
   // return
-  return real + I * imag;
+  return thrust::complex<double>(real, imag);
 }
 }  // namespace ehrlich_aberth_jax
 #endif

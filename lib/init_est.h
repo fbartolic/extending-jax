@@ -24,13 +24,14 @@ typedef struct {
  * ccw < 0, and collinear if ccw = 0 because ccw is a determinant that
  * gives the signed area of the triangle formed by p1, p2 and p3.
  */
-static double ccw(point *p1, point *p2, point *p3) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE static double ccw(point *p1, point *p2, point *p3) {
   return (p2->x - p1->x) * (p3->y - p1->y) - (p2->y - p1->y) * (p3->x - p1->x);
 }
 /* convex_hull: Returns a list of points on the upper envelope of the
  * convex hull in counter-clockwise order.
  */
-void convex_hull(point *points, const unsigned int npoints, point *hull, unsigned int *hullsize) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void convex_hull(point *points, const unsigned int npoints,
+                                                     point *hull, unsigned int *hullsize) {
   unsigned int k = 0;
   for (int i = npoints - 1; i >= 0; i--) {
     while (k >= 2 && ccw(&hull[k - 2], &hull[k - 1], &points[i]) <= 0) --k;
@@ -40,7 +41,8 @@ void convex_hull(point *points, const unsigned int npoints, point *hull, unsigne
 }
 /* init_est:
  */
-void init_est(const double *alpha, const unsigned int deg, thrust::complex<double> *roots) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void init_est(const double *alpha, const unsigned int deg,
+                                                  thrust::complex<double> *roots) {
   // local arrays
   point points[deg + 1];
   point hull[deg + 1];

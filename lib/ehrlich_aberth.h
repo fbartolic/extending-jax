@@ -19,10 +19,9 @@ typedef struct {
   bool x, y;
 } point_conv;
 /* ehrlich aberth correction term */
-thrust::complex<double> correction(const thrust::complex<double> *roots,
-                                   const thrust::complex<double> h,
-                                   const thrust::complex<double> hd, const unsigned int deg,
-                                   const unsigned int j) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE thrust::complex<double> correction(
+    const thrust::complex<double> *roots, const thrust::complex<double> h,
+    const thrust::complex<double> hd, const unsigned int deg, const unsigned int j) {
   thrust::complex<double> corr = 0;
   for (int i = 0; i < j; i++) {
     corr += 1. / (roots[j] - roots[i]);
@@ -33,10 +32,9 @@ thrust::complex<double> correction(const thrust::complex<double> *roots,
   return h / (hd - h * corr);
 }
 /* reverse ehrlich aberth correction term */
-thrust::complex<double> rcorrection(const thrust::complex<double> *roots,
-                                    const thrust::complex<double> h,
-                                    const thrust::complex<double> hd, const unsigned int deg,
-                                    const unsigned int j) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE thrust::complex<double> rcorrection(
+    const thrust::complex<double> *roots, const thrust::complex<double> h,
+    const thrust::complex<double> hd, const unsigned int deg, const unsigned int j) {
   thrust::complex<double> corr = 0;
   for (int i = 0; i < j; i++) {
     corr += 1. / (roots[j] - roots[i]);
@@ -57,8 +55,9 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void ehrlich_aberth(const thrust::complex<do
   double b;
   thrust::complex<double> h, hd;
   // local arrays
-  double alpha[deg + 1];
-  bool conv[deg];
+  double *alpha = new double[deg + 1];
+  bool *conv = new bool[deg];
+
   // initial estimates
   for (int i = 0; i < deg; i++) {
     alpha[i] = thrust::abs(poly[i]);

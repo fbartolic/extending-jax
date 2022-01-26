@@ -20,7 +20,7 @@ typedef struct {
 } point_conv;
 /* ehrlich aberth correction term */
 EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE thrust::complex<double> correction(
-    const thrust::complex<double> *roots, const thrust::complex<double> h,
+    const thrust::complex<double>* roots, const thrust::complex<double> h,
     const thrust::complex<double> hd, const unsigned int deg, const unsigned int j) {
   thrust::complex<double> corr = 0;
   for (int i = 0; i < j; i++) {
@@ -33,7 +33,7 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE thrust::complex<double> correction(
 }
 /* reverse ehrlich aberth correction term */
 EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE thrust::complex<double> rcorrection(
-    const thrust::complex<double> *roots, const thrust::complex<double> h,
+    const thrust::complex<double>* roots, const thrust::complex<double> h,
     const thrust::complex<double> hd, const unsigned int deg, const unsigned int j) {
   thrust::complex<double> corr = 0;
   for (int i = 0; i < j; i++) {
@@ -46,17 +46,19 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE thrust::complex<double> rcorrection(
          ((double)deg * roots[j] * h - hd - thrust::pow(roots[j], 2) * h * corr);
 }
 /* The function we want to expose as a JAX primitive*/
-EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void ehrlich_aberth(const thrust::complex<double> *poly,
-                                                        thrust::complex<double> *roots,
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void ehrlich_aberth(const thrust::complex<double>* poly,
+                                                        thrust::complex<double>* roots,
                                                         const unsigned int deg,
-                                                        const unsigned int itmax) {
+                                                        const unsigned int itmax, double* alpha,
+                                                        bool* conv, point* points, point* hull) {
   // local variables
   bool s;
   double b;
   thrust::complex<double> h, hd;
+
   // local arrays
-  double *alpha = new double[deg + 1];
-  bool *conv = new bool[deg];
+  //  double *alpha = new double[deg + 1];
+  //  bool *conv = new bool[deg];
 
   // initial estimates
   for (int i = 0; i < deg; i++) {
@@ -64,7 +66,7 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void ehrlich_aberth(const thrust::complex<do
     conv[i] = false;
   }
   alpha[deg] = thrust::abs(poly[deg]);
-  init_est(alpha, deg, roots);
+  init_est(alpha, deg, roots, points, hull);
   // update initial estimates
   for (int i = 0; i <= deg; i++) {
     alpha[i] = alpha[i] * fma(3.8284271247461900976, i, 1);

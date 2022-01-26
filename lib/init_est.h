@@ -42,10 +42,12 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void convex_hull(point *points, const unsign
 /* init_est:
  */
 EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void init_est(const double *alpha, const unsigned int deg,
-                                                  thrust::complex<double> *roots) {
+                                                  thrust::complex<double> *roots, point *points,
+                                                  point *hull) {
   // local arrays
-  point points[deg + 1];
-  point hull[deg + 1];
+  //  point *points = new point[deg + 1];
+  //  point *hull = new point[deg + 1];
+
   // local variables
   unsigned int hullsize;
   const double pi2 = 6.28318530717958647693, sigma = 0.7;

@@ -137,6 +137,7 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE thrust::complex<double> fast_cmplx_acc_sum(
   // variables
   double realp[4] = {p[0].real(), p[1].real(), p[2].real(), p[3].real()};
   double imagp[4] = {p[0].imag(), p[1].imag(), p[2].imag(), p[3].imag()};
+
   // return
   return thrust::complex<double>(fast_acc_sum(realp), fast_acc_sum(imagp));
 }
@@ -382,6 +383,7 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void accsum_comp_horner(const thrust::comple
                                                             thrust::complex<double> *h) {
   // local variables
   struct eft eft_arr[6];
+  //  struct eft *eft_arr = new eft[6];
   struct eft_cmplx_sum tsc;
   struct eft_cmplx_prod tpc;
   thrust::complex<double> e = 0;

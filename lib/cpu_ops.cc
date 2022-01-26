@@ -27,12 +27,25 @@ void cpu_ehrlich_aberth(void *out, const void **in) {
   // Output roots, shape deg*size
   thrust::complex<double> *roots = reinterpret_cast<thrust::complex<double> *>(out);
 
+  // Allocate memory for temporary arrays
+  double *alpha = new double[deg + 1];
+  bool *conv = new bool[deg];
+  point *points = new point[deg + 1];
+  point *hull = new point[deg + 1];
+
   // Compute roots
   std::int64_t i;
   for (std::int64_t idx = 0; idx < size; ++idx) {
     i = idx * (deg + 1);
-    ehrlich_aberth_jax::ehrlich_aberth(poly_flattened + i, roots + i - idx, deg, itmax);
+    ehrlich_aberth_jax::ehrlich_aberth(poly_flattened + i, roots + i - idx, deg, itmax, alpha,
+                                       conv, points, hull);
   }
+
+  // Free memory
+  delete[] alpha;
+  delete[] conv;
+  delete[] points;
+  delete[] hull;
 }
 
 pybind11::dict Registrations() {

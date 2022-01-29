@@ -6,6 +6,7 @@
 
 #include "eft.h"
 
+using complex = thrust::complex<double>;
 namespace ehrlich_aberth_jax {
 
 #ifdef __CUDACC__
@@ -84,8 +85,7 @@ start:
   return t + (tau + sum(p, n));
 }
 /* Fast Complex Accurate Summation */
-EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE thrust::complex<double> fast_cmplx_acc_sum(
-    thrust::complex<double>* p, const unsigned int n) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE complex fast_cmplx_acc_sum(complex* p, const unsigned int n) {
   // variables
   double* realp = new double[n];
   double* imagp = new double[n];
@@ -102,7 +102,7 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE thrust::complex<double> fast_cmplx_acc_sum(
   delete[] imagp;
 
   // return
-  return thrust::complex<double>(real, imag);
+  return complex(real, imag);
 }
 }  // namespace ehrlich_aberth_jax
 #endif

@@ -5,6 +5,8 @@
 #include <cstdio>
 
 #include "eft.h"
+
+using complex = complex;
 namespace ehrlich_aberth_jax {
 
 #ifdef __CUDACC__
@@ -46,19 +48,17 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void two_prod(const double a, const double b
   res->fl_err = fma(a, b, -res->fl_res);
 }
 /* Two Sum Cmplx */
-EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void two_sum_cmplx(const thrust::complex<double> a,
-                                                       const thrust::complex<double> b,
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void two_sum_cmplx(const complex a, const complex b,
                                                        struct eft *eft_arr,
                                                        struct eft_cmplx_sum *res) {
   // struct eft real_eft, imag_eft;
   two_sum(a.real(), b.real(), eft_arr);
   two_sum(a.imag(), b.imag(), eft_arr + 1);
-  res->fl_res = thrust::complex<double>(eft_arr[0].fl_res, eft_arr[1].fl_res);
-  res->fl_err = thrust::complex<double>(eft_arr[0].fl_err, eft_arr[1].fl_err);
+  res->fl_res = complex(eft_arr[0].fl_res, eft_arr[1].fl_res);
+  res->fl_err = complex(eft_arr[0].fl_err, eft_arr[1].fl_err);
 }
 /* Two Product Cmplx */
-EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void two_prod_cmplx(const thrust::complex<double> a,
-                                                        const thrust::complex<double> b,
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void two_prod_cmplx(const complex a, const complex b,
                                                         struct eft *eft_arr,
                                                         struct eft_cmplx_prod *res) {
   // struct eft real_prod1, real_prod2, real_prod3, real_prod4, real_sum1, real_sum2;
@@ -68,10 +68,10 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void two_prod_cmplx(const thrust::complex<do
   two_prod(a.imag(), b.real(), eft_arr + 3);
   two_sum(eft_arr[0].fl_res, -eft_arr[1].fl_res, eft_arr + 4);
   two_sum(eft_arr[2].fl_res, eft_arr[3].fl_res, eft_arr + 5);
-  res->fl_res = thrust::complex<double>(eft_arr[4].fl_res, eft_arr[5].fl_res);
-  res->fl_err1 = thrust::complex<double>(eft_arr[0].fl_err, eft_arr[2].fl_err);
-  res->fl_err2 = thrust::complex<double>(-eft_arr[1].fl_err, eft_arr[3].fl_err);
-  res->fl_err3 = thrust::complex<double>(eft_arr[4].fl_err, eft_arr[5].fl_err);
+  res->fl_res = complex(eft_arr[4].fl_res, eft_arr[5].fl_res);
+  res->fl_err1 = complex(eft_arr[0].fl_err, eft_arr[2].fl_err);
+  res->fl_err2 = complex(-eft_arr[1].fl_err, eft_arr[3].fl_err);
+  res->fl_err3 = complex(eft_arr[4].fl_err, eft_arr[5].fl_err);
 }
 /* Error Free Array Extraction */
 EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE double extract(double *p, double sigma) {
@@ -132,14 +132,13 @@ start:
   return t + (tau + sum(p));
 }
 /* Fast Complex Accurate Summation */
-EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE thrust::complex<double> fast_cmplx_acc_sum(
-    thrust::complex<double> *p) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE complex fast_cmplx_acc_sum(complex *p) {
   // variables
   double realp[4] = {p[0].real(), p[1].real(), p[2].real(), p[3].real()};
   double imagp[4] = {p[0].imag(), p[1].imag(), p[2].imag(), p[3].imag()};
 
   // return
-  return thrust::complex<double>(fast_acc_sum(realp), fast_acc_sum(imagp));
+  return complex(fast_acc_sum(realp), fast_acc_sum(imagp));
 }
 /* Sort */
 EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void sort(double *p) {
@@ -181,13 +180,12 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE double priest_sum(double *p) {
   return s;
 }
 /* Priest Complex Summation */
-EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE thrust::complex<double> priest_cmplx_sum(
-    thrust::complex<double> *p) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE complex priest_cmplx_sum(complex *p) {
   // variables
   double realp[4] = {p[0].real(), p[1].real(), p[2].real(), p[3].real()};
   double imagp[4] = {p[0].imag(), p[1].imag(), p[2].imag(), p[3].imag()};
   // return
-  return thrust::complex<double>(priest_sum(realp), priest_sum(imagp));
+  return complex(priest_sum(realp), priest_sum(imagp));
 }
 /* Horner Method with Double Real Arithmetic */
 EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void horner_dble(const double *poly, const double x,
@@ -208,11 +206,9 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void rhorner_dble(const double *poly, const 
   }
 }
 /* Horner Method with Complex Arithmetic */
-EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void horner_cmplx(const thrust::complex<double> *poly,
-                                                      const thrust::complex<double> x,
-                                                      const unsigned int deg,
-                                                      thrust::complex<double> *h,
-                                                      thrust::complex<double> *hd) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void horner_cmplx(const complex *poly, const complex x,
+                                                      const unsigned int deg, complex *h,
+                                                      complex *hd) {
   // Horner's method
   *h = poly[deg];
   *hd = 0;
@@ -222,11 +218,9 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void horner_cmplx(const thrust::complex<doub
   }
 }
 /* Reversal Horner Method with Complex Arithmetic */
-EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void rhorner_cmplx(const thrust::complex<double> *poly,
-                                                       const thrust::complex<double> x,
-                                                       const unsigned int deg,
-                                                       thrust::complex<double> *h,
-                                                       thrust::complex<double> *hd) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void rhorner_cmplx(const complex *poly, const complex x,
+                                                       const unsigned int deg, complex *h,
+                                                       complex *hd) {
   // Reversal Horner's method
   *h = poly[0];
   *hd = 0;
@@ -236,26 +230,25 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void rhorner_cmplx(const thrust::complex<dou
   }
 }
 /* Horner Method */
-EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void horner(const thrust::complex<double> *poly,
-                                                const thrust::complex<double> x,
-                                                const unsigned int deg,
-                                                thrust::complex<double> *h) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void horner(const complex *poly, const complex x,
+                                                const unsigned int deg, complex *h) {
   // Horner's method
   *h = poly[deg];
   for (int i = deg - 1; i >= 0; --i) {
     *h = *h * x + poly[i];
   }
 }
+
 /* Horner's Method with Complex Compensated Arithmetic */
-EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void horner_comp_cmplx(
-    const thrust::complex<double> *poly, const thrust::complex<double> x, const unsigned int deg,
-    thrust::complex<double> *h, thrust::complex<double> *hd, double *eb) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void horner_comp_cmplx(const complex *poly, const complex x,
+                                                           const unsigned int deg, complex *h,
+                                                           complex *hd, double *eb) {
   // local variables
   struct eft eft_arr[6];
   struct eft_cmplx_sum tsc;
   struct eft_cmplx_prod tpc;
-  thrust::complex<double> e = 0, ed = 0;
-  thrust::complex<double> p[4];
+  complex e = 0, ed = 0;
+  complex p[4];
   double ap[4];
   // Horner's method
   *h = poly[deg];
@@ -298,15 +291,15 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void horner_comp_cmplx(
   *hd += ed;
 }
 /* Reversal Horner's Method with Complex Compensated Arithmetic */
-EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void rhorner_comp_cmplx(
-    const thrust::complex<double> *poly, const thrust::complex<double> x, const unsigned int deg,
-    thrust::complex<double> *h, thrust::complex<double> *hd, double *eb) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void rhorner_comp_cmplx(const complex *poly, const complex x,
+                                                            const unsigned int deg, complex *h,
+                                                            complex *hd, double *eb) {
   // local variables
   struct eft eft_arr[6];
   struct eft_cmplx_sum tsc;
   struct eft_cmplx_prod tpc;
-  thrust::complex<double> e = 0, ed = 0;
-  thrust::complex<double> p[4];
+  complex e = 0, ed = 0;
+  complex p[4];
   double ap[4];
   // Horner's method
   *h = poly[0];
@@ -349,16 +342,14 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void rhorner_comp_cmplx(
   *hd += ed;
 }
 /* Priest CompHorner */
-EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void priest_comp_horner(const thrust::complex<double> *poly,
-                                                            const thrust::complex<double> x,
-                                                            const unsigned int deg,
-                                                            thrust::complex<double> *h) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void priest_comp_horner(const complex *poly, const complex x,
+                                                            const unsigned int deg, complex *h) {
   // local variables
   struct eft eft_arr[6];
   struct eft_cmplx_sum tsc;
   struct eft_cmplx_prod tpc;
-  thrust::complex<double> e = 0;
-  thrust::complex<double> p[4];
+  complex e = 0;
+  complex p[4];
   // Horner's method
   *h = poly[deg];
   for (int i = deg - 1; i >= 0; --i) {
@@ -377,17 +368,15 @@ EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void priest_comp_horner(const thrust::comple
   *h += e;
 }
 /* AccSum CompHorner */
-EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void accsum_comp_horner(const thrust::complex<double> *poly,
-                                                            const thrust::complex<double> x,
-                                                            const unsigned int deg,
-                                                            thrust::complex<double> *h) {
+EHRLICH_ABERTH_JAX_INLINE_OR_DEVICE void accsum_comp_horner(const complex *poly, const complex x,
+                                                            const unsigned int deg, complex *h) {
   // local variables
   struct eft eft_arr[6];
   //  struct eft *eft_arr = new eft[6];
   struct eft_cmplx_sum tsc;
   struct eft_cmplx_prod tpc;
-  thrust::complex<double> e = 0;
-  thrust::complex<double> p[4];
+  complex e = 0;
+  complex p[4];
   // Horner's method
   *h = poly[deg];
   for (int i = deg - 1; i >= 0; --i) {

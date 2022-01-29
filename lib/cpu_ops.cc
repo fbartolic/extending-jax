@@ -5,6 +5,8 @@
 #include "ehrlich_aberth.h"
 #include "pybind11_kernel_helpers.h"
 
+using complex = thrust::complex<double>;
+
 using namespace ehrlich_aberth_jax;
 
 namespace {
@@ -12,20 +14,18 @@ namespace {
 void cpu_ehrlich_aberth(void *out, const void **in) {
   // Parse the inputs
   // reinterpret_cast here converts a void* to a pointer to a pointer for a specific type
-  const std::int64_t size =
-      *reinterpret_cast<const std::int64_t *>(in[0]);  // number of polynomials (size of problem)
-  const std::int64_t deg =
-      *reinterpret_cast<const std::int64_t *>(in[1]);  // degree of polynomials
-  //  const std::int64_t itmax = *reinterpret_cast<const std::int64_t *>(in[2]);  // maxiter
+  const int size =
+      *reinterpret_cast<const int *>(in[0]);  // number of polynomials (size of problem)
+  const int deg = *reinterpret_cast<const int *>(in[1]);  // degree of polynomials
+  //  const int itmax = *reinterpret_cast<const int *>(in[2]);  // maxiter
 
-  const std::int64_t itmax = 50;
+  const int itmax = 50;
 
   // Flattened polynomial coefficients, shape (deg + 1)*size
-  const thrust::complex<double> *poly_flattened =
-      reinterpret_cast<const thrust::complex<double> *>(in[2]);
+  const complex *coeffs = reinterpret_cast<const complex *>(in[2]);
 
   // Output roots, shape deg*size
-  thrust::complex<double> *roots = reinterpret_cast<thrust::complex<double> *>(out);
+  complex *roots = reinterpret_cast<complex *>(out);
 
   // Allocate memory for temporary arrays
   double *alpha = new double[deg + 1];
@@ -34,11 +34,9 @@ void cpu_ehrlich_aberth(void *out, const void **in) {
   point *hull = new point[deg + 1];
 
   // Compute roots
-  std::int64_t i;
-  for (std::int64_t idx = 0; idx < size; ++idx) {
-    i = idx * (deg + 1);
-    ehrlich_aberth_jax::ehrlich_aberth(poly_flattened + i, roots + i - idx, deg, itmax, alpha,
-                                       conv, points, hull);
+  for (int idx = 0; idx < size; ++idx) {
+    ehrlich_aberth_jax::ehrlich_aberth(deg, itmax, coeffs + idx * (deg + 1), roots + idx * deg,
+                                       alpha, conv, points, hull);
   }
 
   // Free memory

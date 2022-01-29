@@ -6,24 +6,27 @@
 #include "kernel_helpers.h"
 #include "kernels.h"
 
+using complex = thrust::complex<double>;
+
 namespace ehrlich_aberth_jax {
 
 namespace {
 
-__global__ void ehrlich_aberth_kernel(std::int64_t size, std::int64_t deg,
-                                      const thrust::complex<double> *poly,
-                                      thrust::complex<double> *roots, double *alpha, bool *conv,
-                                      point *points, point *hull) {
-  const std::int64_t itmax = 50;
-
+// CUDA kernel
+__global__ void ehrlich_aberth_kernel(const int N, const int deg, const int itmax,
+                                      const complex *coeffs, complex *roots, double *alpha,
+                                      bool *conv, point *points, point *hull) {
   // Compute roots
-  // This is a "grid-stride loop" see http://alexminnaar.com/2019/08/02/grid-stride-loops.html
-  std::int64_t i;
-  for (std::int64_t idx = blockIdx.x * blockDim.x + threadIdx.x; idx < size;
-       idx += blockDim.x * gridDim.x) {
-    i = idx * (deg + 1);
-    ehrlich_aberth(poly + i, roots + i - idx, deg, itmax, alpha + i, conv + i - idx, points + i,
-                   hull + i);
+  // This is a "grid-stride loop" see
+  // http://alexminnaar.com/2019/08/02/grid-stride-loops.html
+
+  for (int tid = blockIdx.x * blockDim.x + threadIdx.x; tid < N; tid += blockDim.x * gridDim.x) {
+    ehrlich_aberth(deg, itmax, coeffs + tid * (deg + 1), roots + tid * deg,
+                   alpha + tid * (deg + 1), conv + tid * deg, points + tid * (deg + 1),
+                   hull + tid * (deg + 1));
+    //    ehrlich_aberth_comp(deg, itmax, coeffs + tid * (deg + 1), roots + tid * deg,
+    //                        alpha + tid * (deg + 1), conv + tid * deg, points + tid * (deg + 1),
+    //                        hull + tid * (deg + 1));
   }
 }
 
@@ -37,15 +40,12 @@ inline void apply_ehrlich_aberth(cudaStream_t stream, void **buffers, const char
                                  std::size_t opaque_len) {
   const EhrlichAberthDescriptor &d =
       *UnpackDescriptor<EhrlichAberthDescriptor>(opaque, opaque_len);
-  const std::int64_t size = d.size;
-  const std::int64_t deg = d.deg;
+  const int N = d.size;
+  const int deg = d.deg;
+  const int itmax = 50;
 
-  const thrust::complex<double> *poly =
-      reinterpret_cast<const thrust::complex<double> *>(buffers[0]);
-  thrust::complex<double> *roots = reinterpret_cast<thrust::complex<double> *>(buffers[1]);
-
-  const int block_dim = 512;
-  const int grid_dim = std::min<int>(1024, (size + block_dim - 1) / block_dim);
+  const complex *coeffs = reinterpret_cast<const complex *>(buffers[0]);
+  complex *roots = reinterpret_cast<complex *>(buffers[1]);
 
   // Preallocate memory for temporary arrays used within the kernel allocating these
   // arrays within the kernel with `new` results in a an illegal memory access
@@ -55,13 +55,16 @@ inline void apply_ehrlich_aberth(cudaStream_t stream, void **buffers, const char
   point *points;
   point *hull;
 
-  cudaMalloc(&alpha, size * (deg + 1) * sizeof(double));
-  cudaMalloc(&conv, size * deg * sizeof(bool));
-  cudaMalloc(&points, size * (deg + 1) * sizeof(point));
-  cudaMalloc(&hull, size * (deg + 1) * sizeof(point));
+  cudaMalloc(&alpha, N * (deg + 1) * sizeof(double));
+  cudaMalloc(&conv, N * deg * sizeof(bool));
+  cudaMalloc(&points, N * (deg + 1) * sizeof(point));
+  cudaMalloc(&hull, N * (deg + 1) * sizeof(point));
 
-  ehrlich_aberth_kernel<<<grid_dim, block_dim, 0, stream>>>(size, deg, poly, roots, alpha, conv,
-                                                            points, hull);
+  const int block_dim = 512;
+  const int grid_dim = std::min<int>(1024, (N + block_dim - 1) / block_dim);
+
+  ehrlich_aberth_kernel<<<grid_dim, block_dim, 0, stream>>>(N, deg, itmax, coeffs, roots, alpha,
+                                                            conv, points, hull);
 
   // Free memory
   cudaFree(alpha);

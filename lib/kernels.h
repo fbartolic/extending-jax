@@ -8,8 +8,8 @@
 
 namespace ehrlich_aberth_jax {
 struct EhrlichAberthDescriptor {
-  std::int64_t size;
-  std::int64_t deg;
+  int size;
+  int deg;
 };
 
 void gpu_ehrlich_aberth(cudaStream_t stream, void** buffers, const char* opaque,

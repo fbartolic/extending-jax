@@ -32,8 +32,14 @@ xops = xla_client.ops
 
 # This function exposes the primitive to user code and this is the only
 # public-facing function in this module
-# coeffs has shape ((deg + 1)*size)
 def ehrlich_aberth(coeffs):
+    """Compute complex polynomial roots."""
+    # Reshape to shape (size * (deg + 1),)
+    coeffs = coeffs.reshape(-1, coeffs.shape[-1])
+
+    # The C++ function expects the coefficients to be ordered as p[0] + p[1] * x + ...
+    coeffs = coeffs[:, ::-1]
+
     return _ehrlich_aberth_prim.bind(coeffs)
 
 

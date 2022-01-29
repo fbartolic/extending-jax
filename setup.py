@@ -58,9 +58,8 @@ class CMakeBuildExt(build_ext):
 #            "-DCMAKE_CXX_COMPILER=g++",
         ]
         if os.environ.get("EHRLICH_ABERTH_JAX_CUDA", "no").lower() == "yes":
-            print("INSTALLING THE CUDA VERSON")
             cmake_args.append("-DEHRLICH_ABERTH_JAX_CUDA=yes")
-#            cmake_args.append("-DCMAKE_CUDA_COMPILER=/usr/local/cuda-11.2/bin/nvcc")
+#            cmake_args.append("-DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-11.2")
 
 
         os.makedirs(self.build_temp, exist_ok=True)

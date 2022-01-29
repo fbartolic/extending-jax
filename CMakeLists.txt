@@ -6,6 +6,7 @@ set(CMAKE_CUDA_STANDARD 14)
 
 message(STATUS "Using CMake version " ${CMAKE_VERSION})
 
+
 find_package(Python COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
 
@@ -20,8 +21,9 @@ install(TARGETS cpu_ops DESTINATION ehrlich_aberth_jax)
 
 if (EHRLICH_ABERTH_JAX_CUDA)
   enable_language(CUDA)
+  include_directories("/usr/local/cuda-11.2/include")
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr")
-  include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+
   pybind11_add_module(
     gpu_ops
     ${CMAKE_CURRENT_LIST_DIR}/lib/kernels.cc.cu
